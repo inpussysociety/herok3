@@ -1,0 +1,273 @@
+<h2>Вступление</h2>
+Привет, хабрчане! Какой бы заезженной не была тема создания телеграм бота на python3, я не нашёл инструкций, где показан путь от первой строчки кода до деплоинга бота. В этой статье я хочу показать процесс создания бота от написания BotFather-у до деплоинга бота на Heroku.
+
+<spoiler title="Содержание:">
+<ol>
+<li>BotFather.</li>
+<li>Установка и настройка pipenv. Первый запуск.</li>
+<li>Хэндлеры. Отвечаем на команды и сообщения.
+<ul>
+<li>Основы взаимодействия. Ответ на команды.</li>
+<li>Основы взаимодействия. Ответ на текстовые сообщения.</li>
+<li>Основы взаимодействия. Ответ на картинки, документы, аудио и прочие.</li>
+<li>Строим цепочку ответов.</li>
+<li>Добавляем парсер в цепочку.</li>
+<li>Теория. Методы взаимодействия с ботом.</li>
+</ul></li>
+<li>Маркапы. Добавляем клавиатуры для быстрого ответа.</li>
+<li>Деплоим бота на Heroku.</li>
+<li>Ссылки.</li>
+<li>Дополнительная информация.</li>
+</ol>
+</spoiler>
+Для начала стоит определиться, что же будет делать наш бот. Я решил написать простого бота, кторый будет парсить и выдовать нам заголовки с Хабра.
+И так, начнём же.
+<cut/>
+<h2>BotFather</h2>
+Для начала нам надо зарегистрировать нашего бота в Telegram. Для этого:
+
+
+В поиске вбиваем @BotFather и переходим в диалог с Отцом Ботов.
+
+Пишем /newbot. Указываем имя бота (то, что отбражается в диалогах). Указываем его логин, по которому его можно булет найти.
+P.S. Оно должно заканчиваться на Bot/bot
+
+Вот. Нам дали API ключ и ссылку на бота. Желательно сохранить API ключ и перейти в диалог с ботом, чтобы потом не копаться в переписке с BotFather
+
+Дальше лобавим ему пару команд: пропишем /setcommands и <b>одним сообщением</b>, т.к. /setcommands не добавляет команды, а задаёт их с нуля,  пошлём ему команды.
+all - спарсить заголовки с вкладки "ВСЁ ПОДРЯД"
+top - спарсить заголовки с вкладки "ЛУЧШЕЕ"
+
+На этом работа с BotFather закончилась, перейдём к следущей части.
+
+<h2>Установка и настройка pipenv. Первый запуск.</h2>
+Для начала создадим файл, в котором будет основной код бота <b>bot.py</b>. Если бот большой, то сразу создавайте файлы, куда вы вынесете функции, классы и т.д, иначе читаемость кода стремится к нулю. Я добавлю parser.py
+
+Установим <b>pipenv</b>, если его конечно ещё нет.
+
+Для Windows:
+<source lang="bash">pip install pipenv</source>
+Для Linux:
+<source lang="bash">sudo pip3 install pipenv</source>
+
+Установим pipenv в папку проекта.
+<source lang="bash">pipenv install</source>
+Установим интересующие нас библиотеки. Я буду работать с PyTelegramBotAPI. Но, чтобы она нормально работала на серверах Heroku указываем версию 2.2.3. Также для парсинга добавим BeautifulSoup4.
+<source lang="bash">pipenv install PyTelegramBotAPI==2.2.3
+pipenv install beautifulsoup4
+</source>
+Начинаем писать код!
+Открываем bot.py, импортируем библиотеки и создаём главные переменные .
+<source lang="python">
+import telebot
+import parser
+
+#main variables
+TOKEN = "555555555:AAAAaaaAaaA1a1aA1AAAAAAaaAAaa4AA"
+bot = telebot.TeleBot(TOKEN)
+</source>
+Запустим бота. Посмотри наличие ошибок.
+<spoiler title="Как запустить?">
+Для Windows:
+<source lang="bash">python bot.py</source>
+Для Linux:
+<source lang="bash">python3 bot.py</source>
+</spoiler>
+Если ошибок не появилось, то продолжим.
+
+<h2>Хэндлеры. Отвечаем на команды и сообщения.</h2>
+Пришло время научить бота отвечать нам. Возможно даже сделать его ответы полезными.
+<h3>Основы взаимодействия. Ответ на команды.</h3>
+Для взаимодействия с пользователем, т.е. для ответа на его команды и сообщения используются хэндлеры.
+Начнём с самого простого: ответим на команды /start и /go
+<source lang="python">@bot.message_handler(commands=['start', 'go'])
+def start_handler(message):
+    bot.send_message(message.chat.id, 'Привет, когда я вырасту я буду парсить заголовки с хабра')
+bot.polling()</source>Сейчас разберёмся что это и как это работает. Передаём в message_handler парамерт commands равный массиву со строками - командами, на которые он будет отвечать описанным ниже образом. (На все эти команды он ответит одинаково). Далее использем send_message, в него записываем id чата (его можно достать из message.chat.id), в который отправить сообщение и, собственно, само сообщение. Нельзя забыть написать bot.polling() в конце кода, иначе бот сразу же выключиться. Почему так мы узнаем позже.
+Теперь можно запустить бота и написать ему /start или /go и он ответит.
+P.S. Сообщение может быть не только строкой, а, впринципе, чем угодно.
+<spoiler title="P.S.S. Что за message?">
+Это json объект, хранящий информацию об отправителе, чате, и самом сообщении.
+<source lang="json">{
+  'content_type': 'text',
+  'message_id': 5,
+  'from_user':
+    {
+      'id': 333960329,
+      'first_name': 'Nybkox',
+      'username': 'nybkox',
+      'last_name': None
+    },
+  'date': 1520186598,
+  'chat':
+    {
+      'type': 'private',
+      'last_name': None,
+      'first_name': 'Nybkox',
+      'username': 'nybkox',
+      'id': 333960329,
+      'title': None,
+      'all_members_are_administrators': None
+    },
+    'forward_from_chat': None,
+    'forward_from': None,
+    'forward_date': None,
+    'reply_to_message': None,
+    'edit_date': None,
+    'text': '/start',
+    'entities': [<telebot.types.MessageEntity object at 0x7f3061f42710>],
+    'audio': None,
+    'document': None,
+    'photo': None,
+    'sticker': None,
+    'video': None,
+    'voice': None,
+    'caption': None,
+    'contact': None,
+    'location': None,
+    'venue': None,
+    'new_chat_member': None,
+    'left_chat_member': None,
+    'new_chat_title': None,
+    'new_chat_photo': None,
+    'delete_chat_photo': None,
+    'group_chat_created': None,
+    'supergroup_chat_created': None,
+    'channel_chat_created': None,
+    'migrate_to_chat_id': None,
+    'migrate_from_chat_id': None,
+    'pinned_message': None
+}</source>
+</spoiler>
+<h3>Основы взаимодействия. Ответ на текстовые сообщения.</h3>
+Теперь обработаем текстовые сообщения бота. Самое важное что нам нужно знать это то, что текст сообщения храниться в message.text и то, что чтобы обрабатывать текст в message_handler нужно передавать content_types=['text'].
+Добавим вот такой код.
+<source lang="python">@bot.message_handler(content_types=['text'])
+def text_handler(message):
+    text = message.text.lower()
+    chat_id = message.chat.id
+    if text == "привет":
+        bot.send_message(chat_id, 'Привет, я бот - парсер хабра.')
+    elif text == "как дела?":
+        bot.send_message(chat_id, 'Хорошо, а у тебя?')
+    else:
+        bot.send_message(chat_id, 'Простите, я вам не понял :(')</source>
+Тут мы довабили пару переменных: вынесли текст сообщения (в нижнем регистре, чтобы не было лишних проблем с теми кто пишет капсом, заборчиком и т.д.) в переменную text, вынесли message.chat.id в отдельную переменную, чтобы каждый раз не обращаться к message. Также мы построили небольшое ветвление, для ответа на определённые сообщения, а также ответ на случай непонятного боту сообщения.
+<spoiler title="Итоговый код">
+<source lang="python">import bs4
+import parser
+
+#main variables
+TOKEN = "555555555:AAAAaaaAaaA1a1aA1AAAAAAaaAAaa4AA"
+bot = telebot.TeleBot(TOKEN)
+
+#handlers
+@bot.message_handler(commands=['start', 'go'])
+def start_handler(message):
+    bot.send_message(message.chat.id, 'Привет, когда я вырасту я буду парсить заголовки с хабра')
+
+@bot.message_handler(content_types=['text'])
+def text_handler(message):
+    text = message.text.lower()
+    chat_id = message.chat.id
+    if text == "привет":
+        bot.send_message(chat_id, 'Привет, я бот - парсер хабра.')
+    elif text == "как дела?":
+        bot.send_message(chat_id, 'Хорошо, а у тебя?')
+    else:
+        bot.send_message(chat_id, 'Простите, я вас не понял :(')
+
+bot.polling()
+</source>
+</spoiler>
+<h3>Основы взаимодействия. Ответ на картинки, документы, аудио и прочие.</h3>
+Для ответа на картинки, стикеры, документы, аудио и т.д. нужно всего лишь поменять content_types=['text'].
+Расмотрим пример с картинкой, добавив этот код.
+<source lang="python">@bot.message_handler(content_types=['photo'])
+def text_handler(message):
+    chat_id = message.chat.id
+    bot.send_message(chat_id, 'Красиво.')
+</source>
+Все типы контета: <code>text, audio, document, photo, sticker, video, video_note, voice, location, contact, new_chat_members, left_chat_member, new_chat_title, new_chat_photo, delete_chat_photo, group_chat_created, supergroup_chat_created, channel_chat_created, migrate_to_chat_id, migrate_from_chat_id, pinned_message</code>
+
+<h3>Строим цепочку ответов.</h3>
+Пришло время закончить с элементарными действиями и начать что-то серьёзное. Попробуем построить цепочку ответов. Для этого нам понадобиться register_next_step_handler(). Создадим простой пример, на котором и разберёмся как работает register_next_step_handler().
+<source lang="python">@bot.message_handler(commands=['start', 'go'])
+def start_handler(message):
+    chat_id = message.chat.id
+    text = message.text
+    msg = bot.send_message(chat_id, 'Сколько вам лет?')
+    bot.register_next_step_handler(msg, askAge)
+
+def askAge(message):
+    chat_id = message.chat.id
+    text = message.text
+    if not text.isdigit():
+        msg = bot.send_message(chat_id, 'Возраст должен быть числом, введите ещё раз.')
+        bot.register_next_step_handler(msg, askAge) #askSource
+        return
+    msg = bot.send_message(chat_id, 'Спасибо, я запомнил что вам ' + text + ' лет.')</source>
+И так, в первой функции добавился bot.register_next_step_handler(msg, askAge), в него мы передаём сообщение, которые хотим послать и следующий щаг, к которому перейти после ответа пользователя.
+Во второй функции всё поинтересней, здесь идёт проверка ввёл ли пользователь число, и, если нет, то функция рекурсивно вызывает сама себя, с сообщение "Возраст должен быть числом, введите ещё раз.". Если пользователь ввёл всё верно, то он получает ответ. [SCREENSHOT]
+Но, есть тут проблема. Можно повторно вызвать команду /go или /start, и начнётся бардак. [SCREENSHOT]
+Пофиксить это несложно, добавим переменную для проверки состояния выполнения скрипта.
+<source lang="python">@bot.message_handler(commands=['start', 'go'])
+def start_handler(message):
+    global isRunning
+    if not isRunning:
+        chat_id = message.chat.id
+        text = message.text
+        msg = bot.send_message(chat_id, 'Сколько вам лет?')
+        bot.register_next_step_handler(msg, askAge) #askSource
+        isRunning = True
+
+def askAge(message):
+    chat_id = message.chat.id
+    text = message.text
+    if not text.isdigit():
+        msg = bot.send_message(chat_id, 'Возраст должен быть числом, введите ещё раз.')
+        bot.register_next_step_handler(msg, askAge) #askSource
+        return
+    msg = bot.send_message(chat_id, 'Спасибо, я запомнил что вам ' + text + ' лет.')
+    isRunning = False</source>
+С построением простых цепочек мы разабрались, пойдём дальше,
+<h3>Добавляем парсер в цепочку.</h3>
+Для начала нужен сам парсер. Обратим внимание на то, что во вкладках "Лучшее" и "Всё подряд" есть дополнителные фильтры: сутки, неделя, месяц и <10, <25, <50, <100 соответственно.
+Парсер конечно можно написать и в 1 функцию, но я разобью на 2, так будет проще читать код.
+<spoiler title="Парсер.">
+<source lang="python">import urllib.request
+from bs4 import BeautifulSoup
+
+def getTitlesFromAll(amount, rating='all'):
+    output = ''
+    for i in range(1, amount+1):
+        try:
+            if rating == 'all':
+                html = urllib.request.urlopen('https://habrahabr.ru/all/page'+ str(i) +'/').read()
+            else:
+                html = urllib.request.urlopen('https://habrahabr.ru/all/'+ rating +'/page'+ str(i) +'/').read()
+        except urllib.error.HTTPError:
+            print('Error 404 Not Found')
+            break
+        soup = BeautifulSoup(html, 'html.parser')
+        title = soup.find_all('a', class_ = 'post__title_link')
+        for i in title:
+            i = i.get_text()
+            output += ('- "'+i+'",\n')
+    return output
+
+def getTitlesFromTop(amount, age='daily'):
+    output = ''
+    for i in range(1, amount+1):
+        try:
+            html = urllib.request.urlopen('https://habrahabr.ru/top/'+ age +'/page'+ str(i) +'/').read()
+        except urllib.error.HTTPError:
+            print('Error 404 Not Found')
+            break
+        soup = BeautifulSoup(html, 'html.parser')
+        title = soup.find_all('a', class_ = 'post__title_link')
+        for i in title:
+            i = i.get_text()
+            output += ('- "'+i+'",\n')
+    return output</source>
+</spoiler>
