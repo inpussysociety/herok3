@@ -1,1 +1,1 @@
-bot: python3 bot.py
+bot: python3 vk_to_telegramm.py
