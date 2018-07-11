@@ -23,7 +23,7 @@ def getTitlesFromTop(amount, age='daily'):
     output = ''
     for i in range(1, amount+1):
         try:
-            html = urllib.request.urlopen('https://habrahabr.ru/top/'+ age +'/page'+ str(i) +'/').read()
+            html = urllib.request.urlopen('https://vc.ru/recent/'+ age +'/page'+ str(i) +'/').read()
         except urllib.error.HTTPError:
             print('Error 404 Not Found')
             break
