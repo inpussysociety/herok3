@@ -5,7 +5,7 @@ import parser
 import markups as m
 
 #main variables
-TOKEN = '579433831:AAH1jy9SUeHgX0VKjH6r6js2VLNiQjrdJx0'
+TOKEN = ''
 bot = telebot.TeleBot(TOKEN)
 task = Task()
 
