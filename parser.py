@@ -6,9 +6,9 @@ def getTitlesFromAll(amount, rating='all'):
     for i in range(1, amount+1):
         try:
             if rating == 'all':
-                html = urllib.request.urlopen('https://habrahabr.ru/all/page'+ str(i) +'/').read()
+                html = urllib.request.urlopen('https://vc.ru/recent/'+ str(i) +'/').read()
             else:
-                html = urllib.request.urlopen('https://habrahabr.ru/all/'+ rating +'/page'+ str(i) +'/').read()
+                html = urllib.request.urlopen('https://vc.ru/recent/'+ rating +'/page'+ str(i) +'/').read()
         except urllib.error.HTTPError:
             print('Error 404 Not Found')
             break
