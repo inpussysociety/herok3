@@ -1,0 +1,58 @@
+{
+  "subjects":[
+    {
+      "names": ["русский", "русск"],
+      "code_name": "russkij-jazyk",
+      "isLong": false,
+      "book":
+      {
+        "book_code": "murina",
+        "authors": ["мурина","литвинко", "долбик"],
+        "units": [
+          [273]
+        ]
+      }
+    },
+
+    {
+      "names": ["алгебра", "алг"],
+      "code_name": "algebra",
+      "isLong": true,
+      "book":
+      {
+        "book_code": "kuznecova",
+        "authors": ["кузнецова","муравьева", "шнеперман", "ящин"],
+        "welcome_message_d2": ["Повторение - 3я глава"],
+        "units": [
+          [266, 227, 280]
+        ]
+      }
+    },
+    {
+      "names": ["геометрия", "геом"],
+      "code_name": "geometrija",
+      "isLong": true,
+      "book":
+      {
+        "book_code": "shlykov",
+        "authors": ["шлыков"],
+        "units": [
+          [556]
+        ]
+      }
+    },
+    {
+      "names": ["физика", "физ", "физик"],
+      "code_name": "fizika",
+      "isLong": false,
+      "book":
+      {
+        "book_code": "zhilko",
+        "authors": ["жилко", "маркович"],
+        "units": [
+          [5, 9, 6, 3, 6, 8, 4, 5, 6, 7, 6, 7, 6, 6, 4, 9, 8, 8, 6, 10, 8, 3, 10, 5]
+        ]
+      }
+    }
+  ]
+}
