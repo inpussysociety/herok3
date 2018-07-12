@@ -4,7 +4,7 @@
 __author__ = 'ipetrash'
 
 
-TOKEN = '579433831:AAH1jy9SUeHgX0VKjH6r6js2VLNiQjrdJx0'
+TOKEN = ''
 
 ERROR_TEXT = 'Возникла какая-то проблема. Попробуйте повторить запрос или попробовать чуть позже...'
 BAD_URL_ERROR_TEXT = 'Неправильный формат url ссылки. Допускаются только http и https ссылки.'
