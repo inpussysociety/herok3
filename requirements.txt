@@ -1,4 +1,0 @@
-pyTelegramBotAPI
-vk_api
-datetime
-Pillow
